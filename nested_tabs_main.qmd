@@ -1,0 +1,230 @@
+---
+title: "Nested tabs example"
+subtitle: "No actuals used"
+author: "John Cusack"
+date: "`{r} format(Sys.Date(), '%d %B %Y')`"
+format: 
+  html:
+    toc: true
+    toc-depth: 3
+    toc_float: true
+    toc-location: left
+    page-layout: full
+    embed-resources: true
+editor: visual
+---
+
+```{r}
+#| include: false
+
+source('rscripts/setup/libraries.R')
+source('rscripts/setup/fn_name_cleanup.R')
+source('rscripts/setup/rag_colours.R')
+source('rscripts/setup/nhs_colour_palette.R')
+source('rscripts/setup/fn_short_org_names.R')
+source('rscripts/setup/fn_icb_short_names.R')
+source('rscripts/main_workflow/data_import.R')
+source('rscripts/main_workflow/data_prep.R')
+source('rscripts/main_workflow/create_tables.R')
+source('rscripts/main_workflow/latest_month_df.R')
+
+```
+
+## Introduction
+
+### Purpose of this report
+
+This report is a copy of a report created for indicative reporting of system and trust level performance against the 2024/25 outpatient capacity use ambition. Data in this report is randomly generated but the structure and approach is retained as an example of how the report is built. Some references in the code use previous object names
+
+### What is the outpatient capacity use goal?
+
+As part of the [2024/25 priorities and operational planning guidance](https://www.england.nhs.uk/publication/priorities-and-operational-planning-guidance-2024-25/), a national ambition was set to increase the proportion of all outpatient attendances that are for first appointments or follow-up appointments attracting a procedure tariff to 46% across 2024/25. To support this ambition, [further guidance](https://future.nhs.uk/nationalplanning/view?objectId=203344069) was made available on the Future NHS platform that included asking systems to deliver a 4.5 percentage point improvement against a 2022/23 baseline up to a maximum local ambition of 49%.
+
+### Exampe Region System Ambitions
+
+The system level ambitions for 2024/25 are as follows:
+
+```{r}
+#| label: ambition table
+#| echo: false
+
+ambition_table
+```
+
+## Methodology
+
+::: {.panel-tabset .nav-pills}
+### Data source
+
+Data is taken from the Secondary Use Services - Standard Extract Mart ('SUS SEM')
+
+Data covers the period of financial year 2024/25 and does not include the latest full month of submission (sometimes referred to as the "flex" month)
+
+### Calculation basics
+
+The percentages in this report are calculated using the following approach.
+
+Numerator: count of all outpatient follow up appointments that took place (i.e. were attended) within the time period and did not attract a procedure tariff
+
+Denominator: (count of all outpatient follow up appointments that took place within the time period and did not attract a procedure tariff) + (count of all first outpatient appointments that took place within the time period and did not attract a procedure tariff) + (count of all outpatient appointments that took place within the time period and attracted a procedure tariff)
+
+Calculation: 1-(Numerator/Denominator)
+
+The percentage is "inverted" because the calculation is based on the technical guidance linked to planning. While the ambition is to increase the activity linked to first outpatients or procedures, the technical guidance calculates the percentage of outpatient follow-ups without procedure as a percentage of all outpatient activity.
+
+Which activity is included in the activity is also affected by whether we are looking at region-, system- or trust-level. See the relevant tabs for the differences.
+
+### Why are these figures "indicative?"
+
+Outpatient capacity use has been linked to the scope of the Elective Recovery Fund (ERF), and uses Value Weighted Activity (VWA) calculations to align to ERF.
+
+VWA calculations have an associated delay which means that the timeliness of data linked to VWA does not always align to operational need.
+
+In an effort to support operational colleagues the figures for this report have been calculated based on monthly outpatient SUS submissions. As far as possible the methodology used has been matched to the Value Weighted Activity (VWA) methodology that feeds the Elective Recovery Fund (ERF) calculations but it is acknowledged that there may be some discrepancies between the indicative figures and those that are subsequently produced based on VWA reporting.
+
+### Trust-level considerations
+
+Trust level calculations take into account all NHS funded activity that took place irrespective of where the patient was registered at the time of the event.
+
+### System-level considerations
+
+System-level calculations take into account all NHS funded activity for patients registered to a general practice within the system's "footprint." Activity is limited to the following responsible purchaser groups: "Delegated secondary dental", "ICB commissioned" and "Secondary dental"
+
+### Region-level considerations
+
+Region-level calculations take into account all NHS funded activity for patients registered to a general practice within the region. All responsible purchaser groups are included
+
+### Acronyms
+
+Acronyms and shortened names used within this document to represent systems and providers are:
+
+[System names:]{.underline}
+
+blah blah blah
+
+[Provider names:]{.underline}
+
+blah blah blah
+
+:::
+
+# Overview
+
+The table below shows the organisation-level outpatient capacity use by month.
+
+Where the cell is green with black text, this indicates that organisation met the ambition on that month. Amber with black text indicates that the organisation had not met the ambition in that month, but they were within 95% of the ambition (for example - if the ambition was 46% then below 46% but above 43.69% would be amber). Red with white text indicates that the organisation was below ambition and not within the 95% of ambition threshold.
+
+## Indicative trend table
+
+```{r}
+#| label: trend heat map
+#| echo: false
+
+tbl_overall_cap
+
+```
+
+# Potential Opportunities
+
+This report seeks to support organisations in identifying specialties where there may be a possibility for adjusting how outpatient appointment capacity is being used. The following is intended to support and inform conversations, but it must be stressed that the report does not account for differences between organisations or the patient populations that they serve. A specialty identified below is suggested as a possible avenue to be investigated, it is not a definitive statement that changes are needed or even appropriate.
+
+## How are the opportunities identified?
+
+-   Data was limited to the latest month reported in this document (see methodology section)
+-   The volume of activity for that specialty accounts for at least 1% of the total outpatient activity (within ERF scope) for that month, for that organisation
+-   The proportion of first outpatient appointments and appointments for outpatient procedures is below the ambition set for that organisation
+
+Due to the differences in how outpatient capacity use is calculated for ICBs and Regions, this report only addresses opportunities for NHS provider trusts.
+
+## Opportunities grouped by system
+
+```{r}
+#| label: org_identifiers
+#| echo: false
+
+identifiers <- challenges_by_trust |> 
+  select(icb_code,icb_short_name,org_code, org_short_name) |> 
+  unique()
+
+icb_identifiers <- identifiers |> 
+  select(icb_code,icb_short_name) |> 
+  unique()
+
+```
+
+```{r}
+#| label: opps_tables
+#| results: asis
+#| echo: false
+#| warning: false
+
+cat('::: {.panel-tabset}  \n \n')
+
+for (i in icb_identifiers$icb_code) {
+  loop_ids <- identifiers |> filter(icb_code == i)
+  system_name <- icb_identifiers$icb_short_name[icb_identifiers$icb_code == i]
+  system_data <- challenges_by_trust |> filter(icb_code == i)
+  
+  cat('### ', system_name, ' \n \n')
+  cat('::: {.panel-tabset}  \n \n')
+  
+  for (j in loop_ids$org_code) {
+    trust_name <- loop_ids$org_short_name[loop_ids$org_code == j]
+    
+    tbl_child <- system_data |> 
+      filter(org_code == j) |>
+      select(
+        tfc_short_name,
+        perc,
+        median_perc,
+        var_from_median,
+        vol_perc
+      ) |>
+      mutate(
+        perc = formattable::percent(perc),
+        median_perc = formattable::percent(median_perc),
+        var_from_median = formattable::percent(var_from_median),
+        vol_perc = formattable::percent(vol_perc)
+      ) |> 
+      rename(
+        'specialty' = tfc_short_name,
+        'trust percentage' = perc,
+        'regional median' = median_perc,
+        'variance' = var_from_median,
+        'percentage of total activity' = vol_perc
+      )
+    
+      tbl_child <- formattable::formattable(tbl_child)
+      tbl_child <- formattable::as.datatable(tbl_child,
+                                          class = 'cell-border stripe',
+                                           options = list(
+                                             pageLength = nrow(tbl_child),
+                                             dom = 't'
+                                           ),
+                                           rownames = FALSE,
+                                           escape = FALSE)
+    
+    cat('#### ', trust_name, ' \n')
+    htmltools::tagList(tbl_child) |> print()
+    cat('\n\n')
+    
+  }
+  
+  cat(':::\n \n')
+}
+
+cat(':::\n \n')
+
+
+```
+
+## Who to talk to about each specialty
+
+The table below shows the three trusts in the region who have the highest reported outpatient capacity utilisation for each specialty (again limited to those trusts where the specialty is at least 1% of the trust's overall outpatient activity). Where fewer than three trusts are identified it is because fewer than three trusts in the region have reported at least 1% of their outpatient activity against that specialty this month. The table is searchable and intended to offer potential avenues for organisations to discuss different approaches with their peers.
+
+```{r}
+#| echo: false
+
+tbl_highest_percents
+
+```
